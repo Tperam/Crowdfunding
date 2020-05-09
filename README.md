@@ -53,4 +53,4 @@ contract ERC20Interface {
 
 
 ### 当项目完成
-当项目完成之后,
+当项目完成之后,按照token比例进行分红
