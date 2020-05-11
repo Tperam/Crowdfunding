@@ -1,30 +1,36 @@
 import React from 'react';
-import { Nav } from 'react-bootstrap';
+import { Navbar,Nav } from 'react-bootstrap';
+import {Link} from 'react-router-dom';
 
 class Head extends React.Component{
 
+	constructor( ...args){
+		super(...args);
+	}
+
+
+	componentWillMount() {
+		this.state = {
+			count:1
+		};
+	}
 	render(){
 		return (
-			<Navbar bg="light" expand="lg">
-				<Navbar.Brand href="#home">React-Bootstrap</Navbar.Brand>
-				<Navbar.Toggle aria-controls="basic-navbar-nav" />
-				<Navbar.Collapse id="basic-navbar-nav">
+			<Navbar bg="dark" variant="dark" expand="lg" >
+				<div className="container">
+					<Navbar.Brand href="home">众筹DApp</Navbar.Brand>
 					<Nav className="mr-auto">
-						<Nav.Link href="#home">Home</Nav.Link>
-						<Nav.Link href="#link">Link</Nav.Link>
-						<NavDropdown title="Dropdown" id="basic-nav-dropdown">
-						<NavDropdown.Item href="#action/3.1">Action</NavDropdown.Item>
-						<NavDropdown.Item href="#action/3.2">Another action</NavDropdown.Item>
-						<NavDropdown.Item href="#action/3.3">Something</NavDropdown.Item>
-						<NavDropdown.Divider />
-						<NavDropdown.Item href="#action/3.4">Separated link</NavDropdown.Item>
-						</NavDropdown>
+						<Nav.Item>
+							<Link to="/" className="nav-link">Home</Link>
+						</Nav.Item>
+						<Nav.Item>
+							<Link to="/newproject" className="nav-link">创建一个众筹项目</Link>
+						</Nav.Item>
+						<Nav.Item>
+							<Link to="/project" className="nav-link">Pricing</Link>
+						</Nav.Item>
 					</Nav>
-					<Form inline>
-						<FormControl type="text" placeholder="Search" className="mr-sm-2" />
-						<Button variant="outline-success">Search</Button>
-					</Form>
-				</Navbar.Collapse>
+				</div>
 			</Navbar>
 		);
 	}
