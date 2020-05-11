@@ -255,7 +255,6 @@ contract Project is ERC20Interface{
 	}
 
 	// 从合约账户取钱
-
 	function doPayment(uint id) ownerOnly public{
 		Payment storage p0 = paymentList[id];
 		require(!p0.completed,"当前payment以及取过钱"); // 判断是否取过钱
@@ -263,7 +262,6 @@ contract Project is ERC20Interface{
 		require(p0.amount <= balance(this).balance, "资金不够");
 		p0.completed = true;
 		transfer(p0.accept,p0.amount);
-
 	}
 
 	function () public payable {
