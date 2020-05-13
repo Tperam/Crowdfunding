@@ -8,15 +8,7 @@ import ProjectList from './Component/projectList';
 
 class App extends React.Component{
 
-	constructor( ...args){
-		super(...args);
-	}
 
-	getInitialState() {
-		return {
-			route: window.location.hash.substr(1)
-		}
-	}
 	render(){
 		return (
 			<div >

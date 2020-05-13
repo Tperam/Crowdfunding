@@ -4,16 +4,7 @@ import {Link} from 'react-router-dom';
 
 class Head extends React.Component{
 
-	constructor( ...args){
-		super(...args);
-	}
 
-
-	componentWillMount() {
-		this.state = {
-			count:1
-		};
-	}
 	render(){
 		return (
 			<Navbar bg="dark" variant="dark" expand="lg" >
@@ -21,13 +12,13 @@ class Head extends React.Component{
 					<Navbar.Brand href="home">众筹DApp</Navbar.Brand>
 					<Nav className="mr-auto">
 						<Nav.Item>
-							<Link to="/" className="nav-link">Home</Link>
+							<Nav.Link as={Link} to="/">Home</Nav.Link>
 						</Nav.Item>
 						<Nav.Item>
-							<Link to="/newproject" className="nav-link">创建一个众筹项目</Link>
+							<Nav.Link as={Link} to="/newproject">创建一个众筹项目</Nav.Link>
 						</Nav.Item>
 						<Nav.Item>
-							<Link to="/project" className="nav-link">Pricing</Link>
+							<Nav.Link as={Link} to="/project">投资</Nav.Link>
 						</Nav.Item>
 					</Nav>
 				</div>

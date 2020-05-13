@@ -52,5 +52,16 @@ contract ERC20Interface {
 - 投资者可以在特定的时间内(在项目进行到1/3时,2/3时)，决定是否对项目进行终止，当51%的投资权力认为需要停止项目。则直接按比例退回剩余资金
 
 
-### 当项目完成
-当项目完成之后,按照token比例进行分红
+## 项目目录介绍
+```
+-- contracts 存放智能合约源码
+
+-- scripts 存放编译合约脚本
+
+-- public react 静态文件 .css .html .js
+
+-- src react前端js
+	|-- build 存放合约abi文件，address地址
+	|-- Component react组件
+	|-- libs 库
+```
