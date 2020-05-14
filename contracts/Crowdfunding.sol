@@ -93,7 +93,7 @@ contract Project is ERC20Interface{
 
 	bytes32 symbol; // 币名简称
 	bytes32 name; // 币名全程
-	uint8 public decimals; // 小数点 bi
+	uint8 public decimals; // 小数点 
     uint public _totalSupply;  // 总供应量
     uint public startDate; // 众筹开始时间
     uint public bonusEnds; // 奖励时间
@@ -306,11 +306,7 @@ contract Project is ERC20Interface{
 	function () public payable {
 		require(now >= startDate && now < endDate,"只能在众筹阶段购买");
 		uint tokens;
-		if (now <= bonusEnds) {
-			tokens = msg.value.div(bonusTokenToWei); // 1 eth = 1.2 token
-		} else {
-			tokens = msg.value.div(tokenToWei); // 1 eth = 1 token
-		}
+		tokens = getToken(msg.value); // 1 eth = 1.2 token
 
 		uint ethCount = investors[msg.sender].investment.add(msg.value);
 		require (ethCount >= minInvest,"不能超过个人最多购买量"); // 限制个人最多购买数量
@@ -332,8 +328,35 @@ contract Project is ERC20Interface{
 
 	function contribute () payable public{}
 
+	// 获取token数量
+	function getToken(uint value) private pure returns(uint token){
+		// 确定1token等于多少wei的位数
+		uint count = 1;
+		uint cp_tokenToWei = tokenToWei;
+
+		// 计算出有多少位
+		for(;cp_tokenToWei>=10;cp_tokenToWei/=10){
+			count ++;
+		}
+		// 重置res
+		uint decimalPlaces = 1;
+		for (uint i=0; i < (count-decimals); i++){
+			decimalPlaces.mul(10);
+		}
+
+		// 判断是否在奖励阶段
+		if (now <= bonusEnds) {
+			token = value.div( bonusTokenToWei.div(decimalPlaces) );
+		} else {
+			token = value.div( tokenToWei.div(decimalPlaces) );
+		}
+		// 返回: 这次交易所生成的token
+		return token;
+	}
+
 	// 众筹失败，自动退还已众筹金额
 	function crowdfundingFailed(){
+		require(now>=endDate,"未到可退款时间");
 		for( uint i=0; i<investorList.length; i++){
 			transfer( investorList[i],investors[investorList[i]].investment);
 			investors[investorList[i]].investment = 0; // 清空他的投资
@@ -342,7 +365,7 @@ contract Project is ERC20Interface{
 
 
 	// 工具 - 查询正在进行中的Payment
-	function tool_validPayment() view returns(uint[]){
+	function tool_validPayment() private view returns(uint[]){
 		uint[] memory ongoingVoting; // 正在进行的投票
 		// 将正在进行的投票进行获取
 		for( uint i=0; i<paymentList.length; i ++){
@@ -353,6 +376,8 @@ contract Project is ERC20Interface{
 		}
 		return ongoingVoting;
 	}
+
+	
 	
 }
 

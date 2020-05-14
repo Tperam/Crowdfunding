@@ -1,12 +1,13 @@
 import React from 'react';
-import { Form, Button, Col } from 'react-bootstrap';
+import { Form, Button, Col, Alert } from 'react-bootstrap';
+import web3 from "../libs/web3";
+
 
 class newProject extends React.Component{
 
 	constructor(props){
 		super(props);
 		this.state = {
-			owner: "",
 			projectName: "",
 			goal: 0,
 			maxInvest: 0,
@@ -20,14 +21,14 @@ class newProject extends React.Component{
 			bounsTokenToWei: 0,
 			endDate: 0,
 			tokenToWei:0,
-			errors :{
-
-			}
+			errors :{},
+			createError:""
 		};
 
 		this.handleNewProject = this.handleNewProjectInput()
 	}
 
+	// 处理验证input表单
 	handleNewProjectInput(){
 		return {
 
@@ -237,7 +238,7 @@ class newProject extends React.Component{
 				const value = event.target.value.trim();
 				// 判断是否全是数字
 				if ( (/^[0-9]{4}\-[0-1][0-9]\-([0-2][0-9]|3[0-1]) ([0-1][0-9]|2[0-3]):[0-5][0-9]:[0-5][0-9]$/).test(value)){
-					var unix = value;
+					var unix = Date.parse(new Date(value))/1000;
 					let errors = Object.assign({},this.state.errors);
 					errors.startDate = null;
 					this.setState({
@@ -262,7 +263,7 @@ class newProject extends React.Component{
 				const value = event.target.value.trim();
 				// 判断是否全是数字
 				if ( (/^[0-9]{4}\-[0-1][0-9]\-([0-2][0-9]|3[0-1]) ([0-1][0-9]|2[0-3]):[0-5][0-9]:[0-5][0-9]$/).test(value)){
-					var unix = value;
+					var unix = Date.parse(new Date(value))/1000;
 					let errors = Object.assign({},this.state.errors);
 					errors.endDate = null;
 					this.setState({
@@ -287,7 +288,7 @@ class newProject extends React.Component{
 				const value = event.target.value.trim();
 				// 判断是否是日期
 				if ( (/^[0-9]{4}\-[0-1][0-9]\-([0-2][0-9]|3[0-1]) ([0-1][0-9]|2[0-3]):[0-5][0-9]:[0-5][0-9]$/).test(value)){
-					var unix = value;
+					var unix = Date.parse(new Date(value))/1000;
 					let errors = Object.assign({},this.state.errors);
 					errors.bounsEnd = null;
 					this.setState({
@@ -358,40 +359,60 @@ class newProject extends React.Component{
 				}
 			},
 		}
-
-		
-
-		// // 将className 设置为 isValid
-		// function setValid(event){
-
-		// 	// 检测里面是否有 is-valid
-		// 	if (!event.target.className.match("is-valid")){
-
-		// 		var strArr = event.target.className.split(" is-invalid");
-		// 		strArr.push("is-valid");
-		// 		event.target.className = strArr.join(" ");
-		// 	}
-		// }
-		// // 将className 设置为 isValid
-		// function setInValid(event){
-
-		// 	// 检测里面是否有 is-valid
-		// 	if (!event.target.className.match("is-invalid")){
-
-		// 		var strArr = event.target.className.split(" is-valid");
-		// 		strArr.push("is-invalid");
-		// 		event.target.className = strArr.join(" ");
-		// 	}
-		// }
 	}
 
-	printContent(){
-		console.log(this.state);
+	// 创建众筹项目
+	async createProject(){
+
+		// 验证输入值是否正确
+		console.log(web3);
+		window.web3test = web3;
+		// 判断是否有metamask
+		if (typeof window.web3 == 'undefined'){
+			// 弹出错误，没有前端钱包
+			this.setState({
+				createError:"没有发现前端钱包!"
+			})
+			return false;
+		}
+		// 获取账号 
+		let accounts = await web3.eth.getAccounts();
+
+		if (accounts.length == 0){
+			// 弹出错误，提示请给本网站授权
+			this.setState({
+				createError:"无法连接到前端钱包!"
+			})
+			return false;
+		}
+
+		// 开始判断输入
+
+		// 判断projectName
+		if (/^&/.test(this.state.projectName)){
+			this.setState({
+				createError:"请仔细检查project name是否符合规范"
+			})
+			return false;
+		}
+
+		
+		this.setState({
+			createError:"",
+			createRes:"您已成功创建项目！"
+		})
 	}
 
 	render () {
 		return (
 			<Form className="container mt40 mb40">
+				<Alert variant="danger" show={this.state.createError}>
+					{this.state.createError}
+				</Alert>
+
+				<Alert variant="success" show={this.state.createRes}>
+					{this.state.createRes}
+				</Alert>
 
 				<Form.Group controlId="formProjectName" className="has-success has-feedback">
 					<Form.Label>项目名称</Form.Label>
@@ -514,7 +535,7 @@ class newProject extends React.Component{
 
 
 
-				<Button variant="primary" type="button" onClick={this.printContent.bind(this)}>
+				<Button variant="primary" type="button" onClick={this.createProject.bind(this)}>
 					Submit
 				</Button>
 			</Form>
