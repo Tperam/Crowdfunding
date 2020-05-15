@@ -1,7 +1,7 @@
 import React from 'react';
 import { Form, Button, Col, Alert } from 'react-bootstrap';
 import web3 from "../libs/web3";
-
+import ProjectListContract from '../libs/projectList';
 
 class newProject extends React.Component{
 
@@ -17,12 +17,13 @@ class newProject extends React.Component{
 			name: "",
 			decimals: 0,
 			startDate: 0,
-			bounsEnd: 0,
-			bounsTokenToWei: 0,
+			bonusEnd: 0,
+			bonusTokenToWei: 0,
 			endDate: 0,
 			tokenToWei:0,
 			errors :{},
-			createError:""
+			createError:"",
+			createRes:""
 		};
 
 		this.handleNewProject = this.handleNewProjectInput()
@@ -87,7 +88,7 @@ class newProject extends React.Component{
 			setMaxInvest(event){
 				const value = event.target.value.trim();
 				// 判断是否全是数字
-				if ( (/^\d+$/).test(value) && value >= this.state.minInvest){
+				if ( (/^\d+$/).test(value) && parseInt(value) >= this.state.minInvest && parseInt(value) <= this.state.goal){
 
 					let errors = Object.assign({},this.state.errors);
 					errors.maxInvest = null;
@@ -100,7 +101,7 @@ class newProject extends React.Component{
 				} else {
 					//深度复制
 					let errors = Object.assign({},this.state.errors);
-					errors.maxInvest = "maxInvest必须为数字，必须大于或等于minInvest";
+					errors.maxInvest = "maxInvest必须为数字，必须大于或等于minInvest,必须小于等于goal";
 					this.setState({
 						errors: errors,
 						maxInvest: 0
@@ -112,8 +113,7 @@ class newProject extends React.Component{
 			setMinInvest(event){
 				const value = event.target.value.trim();
 				// 判断是否全是数字
-				if ( (/^\d+$/).test(value) && value >= this.state.maxInvest){
-
+				if ( (/^\d+$/).test(value) && parseInt(value) <= this.state.maxInvest){
 					let errors = Object.assign({},this.state.errors);
 					errors.minInvest = null;
 					this.setState({
@@ -125,7 +125,7 @@ class newProject extends React.Component{
 				} else {
 					//深度复制
 					let errors = Object.assign({},this.state.errors);
-					errors.minInvest = "minInvest必须为数字，必须小于或等于minInvest";
+					errors.minInvest = "minInvest必须为数字，必须小于或等于maxInvest";
 					this.setState({
 						errors: errors,
 						minInvest: 0
@@ -215,7 +215,7 @@ class newProject extends React.Component{
 				if ( (/^\d+$/).test(value)){
 
 					let errors = Object.assign({},this.state.errors);
-					errors.decimal = null;
+					errors.decimals = null;
 					this.setState({
 						errors:errors,
 						decimal:value
@@ -225,7 +225,7 @@ class newProject extends React.Component{
 				} else {
 					//深度复制
 					let errors = Object.assign({},this.state.errors);
-					errors.decimal = "decimal必须为数字";
+					errors.decimals = "decimal必须为数字";
 					this.setState({
 						errors: errors,
 						decimal: ""
@@ -284,51 +284,51 @@ class newProject extends React.Component{
 				}
 			},
 
-			setBounsEnd(event){
+			setbonusEnd(event){
 				const value = event.target.value.trim();
 				// 判断是否是日期
 				if ( (/^[0-9]{4}\-[0-1][0-9]\-([0-2][0-9]|3[0-1]) ([0-1][0-9]|2[0-3]):[0-5][0-9]:[0-5][0-9]$/).test(value)){
 					var unix = Date.parse(new Date(value))/1000;
 					let errors = Object.assign({},this.state.errors);
-					errors.bounsEnd = null;
+					errors.bonusEnd = null;
 					this.setState({
 						errors:errors,
-						bounsEnd:unix
+						bonusEnd:unix
 					});
 					return true;
 
 				} else {
 					//深度复制
 					let errors = Object.assign({},this.state.errors);
-					errors.bounsEnd = "日期格式为: yyyy-MM-dd HH:mm:ss";
+					errors.bonusEnd = "日期格式为: yyyy-MM-dd HH:mm:ss";
 					this.setState({
 						errors: errors,
-						bounsEnd: 0
+						bonusEnd: 0
 					});
 					return false;
 				}
 			},
 
-			setBounsTokenToWei(event){
+			setbonusTokenToWei(event){
 				const value = event.target.value.trim();
 				// 判断是否全是数字
 				if ( (/^\d+$/).test(value)){
 
 					let errors = Object.assign({},this.state.errors);
-					errors.bounsTokenToWei = null;
+					errors.bonusTokenToWei = null;
 					this.setState({
 						errors:errors,
-						bounsTokenToWei:value
+						bonusTokenToWei:value
 					});
 					return true;
 
 				} else {
 					//深度复制
 					let errors = Object.assign({},this.state.errors);
-					errors.bounsTokenToWei = "symbol不能为空";
+					errors.bonusTokenToWei = "奖励时间token价值必须为数字";
 					this.setState({
 						errors: errors,
-						bounsTokenToWei: ""
+						bonusTokenToWei: ""
 					});
 					return false;
 				}
@@ -363,10 +363,6 @@ class newProject extends React.Component{
 
 	// 创建众筹项目
 	async createProject(){
-
-		// 验证输入值是否正确
-		console.log(web3);
-		window.web3test = web3;
 		// 判断是否有metamask
 		if (typeof window.web3 == 'undefined'){
 			// 弹出错误，没有前端钱包
@@ -378,7 +374,7 @@ class newProject extends React.Component{
 		// 获取账号 
 		let accounts = await web3.eth.getAccounts();
 
-		if (accounts.length == 0){
+		if (accounts.length === 0){
 			// 弹出错误，提示请给本网站授权
 			this.setState({
 				createError:"无法连接到前端钱包!"
@@ -387,25 +383,129 @@ class newProject extends React.Component{
 		}
 
 		// 开始判断输入
-
+		let project = {
+			owner: accounts[0],
+			projectName: this.state.projectName,
+			goal: await web3.utils.toWei(this.state.goal.toString(),"ether"),
+			maxInvest: await web3.utils.toWei(this.state.maxInvest.toString(),"ether"),
+			minInvest: await web3.utils.toWei(this.state.minInvest.toString(),"ether"),
+			description: this.state.description,
+			symbol: this.state.symbol,
+			name: this.state.name,
+			decimals: this.state.decimals,
+			startDate: this.state.startDate,
+			bonusEnd: this.state.bonusEnd,
+			bonusTokenToWei: this.state.bonusTokenToWei,
+			tokenToWei: this.state.tokenToWei,
+			endDate: this.state.endDate
+		}
 		// 判断projectName
-		if (/^&/.test(this.state.projectName)){
+		if (/^$/.test(project.projectName)){
 			this.setState({
-				createError:"请仔细检查project name是否符合规范"
+				createError:"project name 为空"
 			})
 			return false;
 		}
+		// 判断goal
+		if (!/^\d+$/.test(project.goal)){
+			this.setState({
+				createError:"goal必须为数字"
+			})
+			return false;
+		}
+		// 判断 MaxInvest
+		// 是否是数字 && 是否大于minInvest && 是否小于goal
+		if (!(/^\d+$/.test(project.maxInvest) && project.maxInvest>=project.minInvest && project.maxInvest <= project.goal)){
+			this.setState({
+				createError:"检查MaxInvest是否是数字，并检查是否大于minInvest，是否小于goal"
+			})
+			return false;
+		}
+		// 判断 MinInvest
+		if (!/^\d+$/.test(project.maxInvest)){
+			this.setState({
+				createError:"检查MinInvest是否是数字"
+			})
+			return false;
+		}
+		// 判断 symbol 和 name
+		if (/^$/.test(project.symbol) || /^$/.test(project.name)){
+			this.setState({
+				createError:"symbol或者name选项为空"
+			})
+			return false;
+		}
+		// 判断 tokenToWei bonusTokenToWei
+		if (!/^\d+$/.test(project.tokenToWei) && !/^\d+$/.test(project.bonusTokenToWei)){
+			this.setState({
+				createError:"1 token兑换wei 或者 奖励时间token价值 栏目必须为数字,"
+			})
+			return false;
+		}
+		// 判断 Decimals
+		if (!/^\d+$/.test(project.decimals) && project.tokenToWei/Math.pow(10,project.decimals-1) > 0){
+			this.setState({
+				createError:"decimals必须为数字,并且tokenToWei/10的"+project.decimals+"次幂不能小于0"
+			})
+			return false;
+		}
+		// 判断所有日期 startDate bonusEnd endDate
+		if ( !(project.startDate<=project.bonusEnd && project.bonusEnd<=project.endDate) ){
+			this.setState({
+				createError:"众筹开始时间必须小于等于奖励结束日期，奖励日期必须小于等于众筹结束时间"
+			})
+			return false;
+		}
+		// 判断描述是否为空
+		if ( /^$/.test(project.description)){
+			this.setState({
+				createError:"项目描述不能为空"
+			})
+			return false;
+		}
+		// 判断结束 输入值没有错误
+
+		// 使用合约ProjectList调用createProject方法
+
+				// 调用方法 创建合约
+		ProjectListContract.methods.createProject(
+				project.owner,
+				web3.utils.fromAscii(project.projectName),
+				project.goal,
+				project.maxInvest,
+				project.minInvest,
+				project.description,
+				web3.utils.fromAscii(project.symbol),
+				web3.utils.fromAscii(project.name),
+				project.decimals,
+				project.startDate,
+				project.bonusEnd,
+				project.bonusTokenToWei,
+				project.tokenToWei,
+				project.endDate,
+			)
+			.send({from:accounts[0],gas:"5000000"},function(err,res){
+				if (err){
+					console.log(err);
+					this.setState({
+						createError:err,
+						createRes:""
+					})
+				}
+				this.setState({
+					createError:"",
+					createRes:"您已成功创建项目！"
+				})
+
+			}.bind(this))
+
 
 		
-		this.setState({
-			createError:"",
-			createRes:"您已成功创建项目！"
-		})
 	}
 
 	render () {
 		return (
-			<Form className="container mt40 mb40">
+			<Form>
 				<Alert variant="danger" show={this.state.createError}>
 					{this.state.createError}
 				</Alert>
@@ -414,7 +514,7 @@ class newProject extends React.Component{
 					{this.state.createRes}
 				</Alert>
 
-				<Form.Group controlId="formProjectName" className="has-success has-feedback">
+				<Form.Group controlId="formProjectName">
 					<Form.Label>项目名称</Form.Label>
 
 					<Form.Control placeholder="Project name" isInvalid={this.state.errors.projectName} isValid={this.state.projectName} onBlur={  this.handleNewProject.setProjectName.bind(this) } />
@@ -507,20 +607,20 @@ class newProject extends React.Component{
 
 
 				<Form.Row>
-					<Form.Group as={Col} controlId="formBounsEnd">
+					<Form.Group as={Col} controlId="formbonusEnd">
 						<Form.Label>众筹奖励结束日期</Form.Label>
-						<Form.Control placeholder="BounsEnd" isInvalid={this.state.errors.bounsEnd} isValid={this.state.bounsEnd} onBlur={  this.handleNewProject.setBounsEnd.bind(this)  } />
+						<Form.Control placeholder="bonusEnd" isInvalid={this.state.errors.bonusEnd} isValid={this.state.bonusEnd} onBlur={  this.handleNewProject.setbonusEnd.bind(this)  } />
 						<Form.Text className="text-muted">奖励结束日期 (可以用相同的钱买到更多的token 可以为0)</Form.Text>
 						<Form.Control.Feedback type="invalid">
-						{this.state.errors.bounsEnd}
+						{this.state.errors.bonusEnd}
 						</Form.Control.Feedback>
 					</Form.Group>
-					<Form.Group as={Col} controlId="formbounsTokenToWei">
+					<Form.Group as={Col} controlId="formbonusTokenToWei">
 						<Form.Label>奖励时间token价值</Form.Label>
-						<Form.Control placeholder="Bouns Token to wei" isInvalid={this.state.errors.bounsTokenToWei} isValid={this.state.bounsTokenToWei} onBlur={  this.handleNewProject.setBounsTokenToWei.bind(this)  } />
+						<Form.Control placeholder="bonus Token to wei" isInvalid={this.state.errors.bonusTokenToWei} isValid={this.state.bonusTokenToWei} onBlur={  this.handleNewProject.setbonusTokenToWei.bind(this)  } />
 						<Form.Text className="text-muted">1token在奖励时间内需要多少wei购买(1eth=1,000,000,000,000,000,000wei)</Form.Text>
 						<Form.Control.Feedback type="invalid">
-						{this.state.errors.bounsTokenToWei}
+						{this.state.errors.bonusTokenToWei}
 						</Form.Control.Feedback>
 					</Form.Group>
 				</Form.Row>

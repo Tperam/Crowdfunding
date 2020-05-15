@@ -67,6 +67,7 @@ contract ERC20Interface {
 ```
 
 ## 个别特殊变量解析
-> Decimals 小数
+> 合约中 Decimals变量
+
 比如 `1 token = 3，000 wei` 那么我只使用`300wei`购买token的时候就会产生小数，这个变量主要用来控制你的1个token可以产生多少位的小数。
 例如，人民币`1元`能分成`10角`、`100分`，他的decimals就等于2

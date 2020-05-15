@@ -29,7 +29,7 @@ contract ERC20Interface {
 contract ProjectList{
     // 合约列表
 
-	address[] ProjectList; // 记录项目地址
+	address[] ProjectListAddress; // 记录项目地址
 
     // 创建一个项目
     /**
@@ -43,12 +43,12 @@ contract ProjectList{
 		_name 币详细名称
 		_decimals 小数
 		_startDate 投资开始日期
-		_bounsEnd 奖励结束
+		_bonusEnd 奖励结束
 		_bonusTokenToWei 奖励时 1 token = 多少wei
 		_tokenToWei 一eth等于多少token
 		_endDate 投资结束日期
 	*/
-	function createPorject(address _owner, bytes32 _projectName, uint _goal, uint _maxInvest, uint _minInvest, string _description, bytes32 _symbol, bytes32 _name, uint8 _decimals, uint _startDate, uint _bonusEnds, uint8 _bonusTokenToWei, uint _tokenToWei, uint _endDate) public {
+	function createProject(address _owner, bytes32 _projectName, uint _goal, uint _maxInvest, uint _minInvest, string _description, bytes32 _symbol, bytes32 _name, uint8 _decimals, uint _startDate, uint _bonusEnds, uint _bonusTokenToWei, uint _tokenToWei, uint _endDate) public {
 
 		/**
 		_owner 合约地址
@@ -61,19 +61,19 @@ contract ProjectList{
 		_name 币详细名称
 		_decimals 小数
 		_startDate 投资开始日期
-		_bounsEnd 奖励金
+		_bonusEnd 奖励金
 		_bonusTokenToWei 奖励时 1 token = 多少wei
 		_tokenToWei 一eth等于多少token
 		_endDate 投资结束日期
 		*/
 		address p1 = new Project(_owner, _projectName, _goal, _maxInvest, _minInvest, _description, _symbol, _name, _decimals, _startDate, _bonusEnds, _bonusTokenToWei, _tokenToWei, _endDate);
 
-		ProjectList.push(p1);
+		ProjectListAddress.push(p1);
 	}
 
 	// 返回项目列表地址
 	function getProjectList() view public returns(address[]){
-		return ProjectList;
+		return ProjectListAddress;
 	}
      
 }
@@ -97,9 +97,11 @@ contract Project is ERC20Interface{
     uint public _totalSupply;  // 总供应量
     uint public startDate; // 众筹开始时间
     uint public bonusEnds; // 奖励时间
-    uint8 public bonusTokenToWei; // 奖励倍率 bonusTokenToWei = 1.2
+    uint public bonusTokenToWei; // 奖励倍率 bonusTokenToWei = 1.2
     uint public tokenToWei; // eth 转换 token价值
     uint public endDate; // 众筹结束时间
+
+    string[] progress;
 
     address[] investorList; // 起始投资者
 	mapping(address=>Investor) investors; // 投资者 地址对应信息
@@ -156,12 +158,12 @@ contract Project is ERC20Interface{
 		_name 币详细名称
 		_decimals 小数
 		_startDate 投资开始日期
-		_bounsEnd 奖励金
+		_bonusEnd 奖励金
 		_bonusTokenToWei 奖励时 1 token = 多少wei
 		_tokenToWei 一eth等于多少token
 		_endDate 投资结束日期
 	*/
-	constructor(address _owner, bytes32 _projectName, uint _goal, uint _maxInvest, uint _minInvest, string _description, bytes32 _symbol, bytes32 _name, uint8 _decimals, uint _startDate, uint _bonusEnds, uint8 _bonusTokenToWei, uint _tokenToWei, uint _endDate) public{
+	constructor(address _owner, bytes32 _projectName, uint _goal, uint _maxInvest, uint _minInvest, string _description, bytes32 _symbol, bytes32 _name, uint8 _decimals, uint _startDate, uint _bonusEnds, uint _bonusTokenToWei, uint _tokenToWei, uint _endDate) public{
 		owner = _owner;
 		projectName = _projectName;
 		goal = _goal;
@@ -247,14 +249,14 @@ contract Project is ERC20Interface{
 
 
 	// 创建一次 投票取钱
-	function createPayment(address accept,string _description, uint amount,uint endDate) ownerOnly public{
+	function createPayment(address accept,string _description, uint _amount,uint _endDate) ownerOnly public{
 		
 		uint[] memory ongoingVoting = tool_validPayment();
 		uint totalPrice;
 		for( uint i=0; i<ongoingVoting.length; i++){
 			totalPrice = totalPrice.add(paymentList[ongoingVoting[i]].amount);
 		}
-		totalPrice = totalPrice.add(amount);
+		totalPrice = totalPrice.add(_amount);
 		require( totalPrice < address(this).balance ,"当前申请资金超过合约剩余金额");
 
 		// 创建一次投票
@@ -262,17 +264,33 @@ contract Project is ERC20Interface{
 			id: paymentList.length,
 			accept:accept,
 			description:_description,
-			amount:amount,
+			amount:_amount,
 			completed: false,
 			votingCount: 0,
-			endDate:endDate
+			endDate:_endDate
 		});
 
 		// 添加进投票列表里
 		paymentList.push(p0);
 	}
+	function getPayment(uint index) view public returns(uint,address,string,uint,bool,uint,uint){
 
+		require (index >= 0 && index <= paymentList.length,"索引越界");
+		
+		return (
+			paymentList[index].id,
+			paymentList[index].accept,
+			paymentList[index].description,
+			paymentList[index].amount,
+			paymentList[index].completed,
+			paymentList[index].votingCount,
+			paymentList[index].endDate
+		);
+	}
 
+	function getPaymentListLength() view public returns(uint){
+		return paymentList.length;
+	}
 	// 投票 是否同意取钱
 	// id: payment id
 	// flag: 是否同意 true = 同意， false = 不同意.
@@ -303,6 +321,38 @@ contract Project is ERC20Interface{
 		transfer(p0.accept,p0.amount);
 	}
 
+	// 返回当前合约的详细信息
+	function getContractInfo() view public returns(address,uint,uint,uint,string,bytes32,bytes32,uint8,uint,uint,uint,uint,uint,uint){
+		return (
+			owner,
+			goal,
+			maxInvest,
+			minInvest,
+			description,
+			symbol,
+			name,
+			decimals,
+			_totalSupply,
+			startDate,
+			bonusEnds,
+			bonusTokenToWei,
+			tokenToWei,
+			endDate
+		);
+	}
+
+	// 项目方描述项目已经干了什么
+	function addProgress(string desc) public{
+		progress.push(desc);
+	}
+
+	function getProgress(uint index) view public returns(string){
+		return progress[index];
+	}
+	function progressLength() view public returns(uint){
+		return progress.length;
+	}
+
 	function () public payable {
 		require(now >= startDate && now < endDate,"只能在众筹阶段购买");
 		uint tokens;
@@ -329,7 +379,7 @@ contract Project is ERC20Interface{
 	function contribute () payable public{}
 
 	// 获取token数量
-	function getToken(uint value) private pure returns(uint token){
+	function getToken(uint value) private view returns(uint token){
 		// 确定1token等于多少wei的位数
 		uint count = 1;
 		uint cp_tokenToWei = tokenToWei;
@@ -355,13 +405,16 @@ contract Project is ERC20Interface{
 	}
 
 	// 众筹失败，自动退还已众筹金额
-	function crowdfundingFailed(){
+	function crowdfundingFailed() public{
 		require(now>=endDate,"未到可退款时间");
 		for( uint i=0; i<investorList.length; i++){
 			transfer( investorList[i],investors[investorList[i]].investment);
 			investors[investorList[i]].investment = 0; // 清空他的投资
 		}
 	}
+
+
+
 
 
 	// 工具 - 查询正在进行中的Payment

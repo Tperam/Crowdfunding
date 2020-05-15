@@ -9,7 +9,7 @@ class Head extends React.Component{
 		return (
 			<Navbar bg="dark" variant="dark" expand="lg" >
 				<div className="container">
-					<Navbar.Brand href="home">众筹DApp</Navbar.Brand>
+					<Navbar.Brand as={Link} to="/">众筹DApp</Navbar.Brand>
 					<Nav className="mr-auto">
 						<Nav.Item>
 							<Nav.Link as={Link} to="/">Home</Nav.Link>
@@ -19,6 +19,9 @@ class Head extends React.Component{
 						</Nav.Item>
 						<Nav.Item>
 							<Nav.Link as={Link} to="/project">投资</Nav.Link>
+						</Nav.Item>
+						<Nav.Item>
+							<Nav.Link as={Link} to="/getEth">获取ETH(私链，无任何价值)</Nav.Link>
 						</Nav.Item>
 					</Nav>
 				</div>
