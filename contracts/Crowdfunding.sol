@@ -91,8 +91,8 @@ contract Project is ERC20Interface{
 	uint public minInvest ; // 个人最小投资金额 eth
 	string public description ; // 项目描述
 
-	bytes32 symbol; // 币名简称
-	bytes32 name; // 币名全程
+	bytes32 public symbol; // 币名简称
+	bytes32 public name; // 币名全程
 	uint8 public decimals; // 小数点 
     uint public _totalSupply;  // 总供应量
     uint public startDate; // 众筹开始时间
@@ -101,7 +101,7 @@ contract Project is ERC20Interface{
     uint public tokenToWei; // eth 转换 token价值
     uint public endDate; // 众筹结束时间
 
-    string[] progress;
+    string[] progress; // 项目进度描述
 
     address[] investorList; // 起始投资者
 	mapping(address=>Investor) investors; // 投资者 地址对应信息
@@ -273,6 +273,7 @@ contract Project is ERC20Interface{
 		// 添加进投票列表里
 		paymentList.push(p0);
 	}
+	// 获取指定投票
 	function getPayment(uint index) view public returns(uint,address,string,uint,bool,uint,uint){
 
 		require (index >= 0 && index <= paymentList.length,"索引越界");
@@ -318,13 +319,14 @@ contract Project is ERC20Interface{
 		require(p0.votingCount > _totalSupply.div(2),"支持人数没有超过50%"); // 判断支持人数是否超过51%
 		require(p0.amount <= address(this).balance, "资金不够");
 		p0.completed = true;
-		transfer(p0.accept,p0.amount);
+		p0.accept.transfer(p0.amount);
 	}
 
 	// 返回当前合约的详细信息
-	function getContractInfo() view public returns(address,uint,uint,uint,string,bytes32,bytes32,uint8,uint,uint,uint,uint,uint,uint){
+	function getDetails() view public returns(address,bytes32,uint,uint,uint,string,bytes32,bytes32,uint8,uint,uint,uint,uint,uint){
 		return (
 			owner,
+			projectName,
 			goal,
 			maxInvest,
 			minInvest,
@@ -332,13 +334,29 @@ contract Project is ERC20Interface{
 			symbol,
 			name,
 			decimals,
-			_totalSupply,
 			startDate,
 			bonusEnds,
 			bonusTokenToWei,
 			tokenToWei,
 			endDate
 		);
+	}
+	// 返回合约大概信息
+	function getGeneralInfo() view public returns(bytes32,uint,uint,uint,string,bytes32,uint,uint){
+		return (
+			projectName,
+			goal,
+			maxInvest,
+			minInvest,
+			description,
+			symbol,
+			bonusEnds,
+			address(this).balance
+		);
+	}
+	// 获取投资人数
+	function getInvestorNum() view public returns(uint){
+		return investorList.length;
 	}
 
 	// 项目方描述项目已经干了什么
@@ -355,13 +373,14 @@ contract Project is ERC20Interface{
 
 	function () public payable {
 		require(now >= startDate && now < endDate,"只能在众筹阶段购买");
+		require (address(this).balance <= goal,"已完成众筹");
 		uint tokens;
 		tokens = getToken(msg.value); // 1 eth = 1.2 token
 
 		uint ethCount = investors[msg.sender].investment.add(msg.value);
 		require (ethCount >= minInvest,"不能超过个人最多购买量"); // 限制个人最多购买数量
 		require (ethCount <= maxInvest,"不能小于个人最少购买量"); // 个人最小购买数
-		require (address(this).balance.add(msg.value) <= goal,"超出投资总额");
+		
 
 		investors[msg.sender].investment = ethCount;
 		investors[msg.sender].amount = investors[msg.sender].amount.add(tokens);
@@ -404,11 +423,11 @@ contract Project is ERC20Interface{
 		return token;
 	}
 
-	// 众筹失败，自动退还已众筹金额
+	// 众筹失败，退还已众筹金额
 	function crowdfundingFailed() public{
 		require(now>=endDate,"未到可退款时间");
 		for( uint i=0; i<investorList.length; i++){
-			transfer( investorList[i],investors[investorList[i]].investment);
+			investorList[i].transfer(investors[investorList[i]].investment);
 			investors[investorList[i]].investment = 0; // 清空他的投资
 		}
 	}

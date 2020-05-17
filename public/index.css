@@ -1,12 +1,40 @@
 .mt20{
 	margin-top:20px;
 }
+.mt10{
+	margin-top:10px;
+}
 .mt40{
 	margin-top:40px;
+}
+.mb10{
+	margin-bottom: 10px;
 }
 .mb20{
 	margin-bottom:20px;
 }
 .mb40{
 	margin-bottom:40px;
+}
+
+.textHidden{
+	overflow:hidden; 
+	text-overflow:ellipsis;
+	white-space:nowrap;
+	color:#999;
+}
+.bgGray{
+	background-color:#e8e8e8;
+}
+.red{
+	color:#fb0202;
+}
+
+.card-header{
+	position:relative;
+}
+.card-header .investorNum{
+	position:absolute;
+	top:12px;
+	right:10px;
 }

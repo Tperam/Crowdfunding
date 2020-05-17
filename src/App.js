@@ -12,7 +12,7 @@ class App extends React.Component{
 
 	render(){
 		return (
-			<div >
+			<div>
 				<Router>
 					<Head />
 				 	<div className="container mt40 mb40">
@@ -20,7 +20,7 @@ class App extends React.Component{
 							<Route path="/newproject">
 								<NewProject />
 							</Route>
-							<Route path="/projectDetail">
+							<Route path="/projectDetail/:address">
 								<ProjectDetail />
 							</Route>
 							//

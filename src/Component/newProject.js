@@ -470,13 +470,13 @@ class newProject extends React.Component{
 				// 调用方法 创建合约
 		ProjectListContract.methods.createProject(
 				project.owner,
-				web3.utils.fromAscii(project.projectName),
+				web3.utils.fromUtf8(project.projectName),
 				project.goal,
 				project.maxInvest,
 				project.minInvest,
 				project.description,
-				web3.utils.fromAscii(project.symbol),
-				web3.utils.fromAscii(project.name),
+				web3.utils.fromUtf8(project.symbol),
+				web3.utils.fromUtf8(project.name),
 				project.decimals,
 				project.startDate,
 				project.bonusEnd,
@@ -488,7 +488,7 @@ class newProject extends React.Component{
 				if (err){
 					console.log(err);
 					this.setState({
-						createError:err,
+						createError:"交易失败，请联系管理员",
 						createRes:""
 					})
 				}
