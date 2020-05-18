@@ -372,6 +372,9 @@ contract Project is ERC20Interface{
 	}
 
 	function () public payable {
+	}
+
+	function contribute () payable public{
 		require(now >= startDate && now < endDate,"只能在众筹阶段购买");
 		require (address(this).balance <= goal,"已完成众筹");
 		uint tokens;
@@ -394,8 +397,6 @@ contract Project is ERC20Interface{
 		// 提交到前端
 		emit Transfer(address(0), msg.sender, tokens);
 	}
-
-	function contribute () payable public{}
 
 	// 获取token数量
 	function getToken(uint value) private view returns(uint token){

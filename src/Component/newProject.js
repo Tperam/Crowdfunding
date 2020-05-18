@@ -209,7 +209,7 @@ class newProject extends React.Component{
 				}
 			},
 
-			setDecimal(event){
+			setDecimals(event){
 				const value = event.target.value.trim();
 				// 判断是否全是数字
 				if ( (/^\d+$/).test(value)){
@@ -218,7 +218,7 @@ class newProject extends React.Component{
 					errors.decimals = null;
 					this.setState({
 						errors:errors,
-						decimal:value
+						decimals:value
 					});
 					return true;
 
@@ -415,7 +415,7 @@ class newProject extends React.Component{
 		}
 		// 判断 MaxInvest
 		// 是否是数字 && 是否大于minInvest && 是否小于goal
-		if (!(/^\d+$/.test(project.maxInvest) && project.maxInvest>=project.minInvest && project.maxInvest <= project.goal)){
+		if (!(/^\d+$/.test(project.maxInvest) || project.maxInvest>=project.minInvest || project.maxInvest <= project.goal)){	
 			this.setState({
 				createError:"检查MaxInvest是否是数字，并检查是否大于minInvest，是否小于goal"
 			})
@@ -467,7 +467,7 @@ class newProject extends React.Component{
 
 		// 使用合约ProjectList调用createProject方法
 
-				// 调用方法 创建合约
+				// 调用方法 创建合约 返回address
 		ProjectListContract.methods.createProject(
 				project.owner,
 				web3.utils.fromUtf8(project.projectName),
@@ -484,20 +484,13 @@ class newProject extends React.Component{
 				project.tokenToWei,
 				project.endDate,
 			)
-			.send({from:accounts[0],gas:"5000000"},function(err,res){
-				if (err){
-					console.log(err);
-					this.setState({
-						createError:"交易失败，请联系管理员",
-						createRes:""
-					})
-				}
-				this.setState({
-					createError:"",
-					createRes:"您已成功创建项目！"
-				})
+			.send({from:accounts[0]})
 
-			}.bind(this))
+		this.setState({
+			createRes:"您的合约地址为:",
+			createError:""
+		})
+
 
 
 		
@@ -578,7 +571,7 @@ class newProject extends React.Component{
 					</Form.Group>
 					<Form.Group as={Col} controlId="formDecimal">
 						<Form.Label>代币小数位</Form.Label>
-						<Form.Control placeholder="Decimal" isInvalid={this.state.errors.decimal} isValid={this.state.decimal} onBlur={  this.handleNewProject.setDecimal.bind(this)  } />
+						<Form.Control placeholder="Decimals" isInvalid={this.state.errors.decimals} isValid={this.state.decimals} onBlur={  this.handleNewProject.setDecimals.bind(this)  } />
 						<Form.Text className="text-muted">默认为0(1token是否可以有小数点 单token是否可拆分)</Form.Text>
 						<Form.Control.Feedback type="invalid">
 						{this.state.errors.decimals}

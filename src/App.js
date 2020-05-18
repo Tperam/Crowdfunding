@@ -17,19 +17,14 @@ class App extends React.Component{
 					<Head />
 				 	<div className="container mt40 mb40">
 						<Switch>
-							<Route path="/newproject">
-								<NewProject />
-							</Route>
-							<Route path="/projectDetail/:address">
-								<ProjectDetail />
-							</Route>
-							//
-							<Route path="/getEth">
-								<GetETH/>
-							</Route>
-							<Route path="/">
-								<ProjectList />
-							</Route>
+							<Route path="/newproject" component={NewProject}/>
+
+							<Route path="/projectDetail/:address" component={ProjectDetail} />
+							
+							<Route path="/getEth" component={GetETH} />
+
+							<Route path="/" component={ProjectList} />
+							
 						</Switch>
 					</div>
 				</Router>

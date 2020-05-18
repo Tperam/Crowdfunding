@@ -37,13 +37,13 @@ class ProjectList extends React.Component{
 
     		return {
     			projectName: web3.utils.toUtf8(projectName),
-				goal: web3.utils.fromWei(goal),
-				maxInvest: web3.utils.fromWei(maxInvest),
-				minInvest: web3.utils.fromWei(minInvest),
+				goal: web3.utils.fromWei(goal,"ether"),
+				maxInvest: web3.utils.fromWei(maxInvest,"ether"),
+				minInvest: web3.utils.fromWei(minInvest,"ether"),
 				description,
 				symbol: web3.utils.toUtf8(symbol),
 				bonusEnds,
-				balance,
+				balance: web3.utils.fromWei(balance,"ether"),
 				investorNum: investorNum[index][0],
 				address:addresses[index]
 			}
@@ -57,14 +57,13 @@ class ProjectList extends React.Component{
 	render(){
 		let projectListInfo = this.state.projects.map( (project,index)=>{
 			let flagBonusTime = project.bonusEnds > Date.parse(new Date())/1000;
-			console.log(project)
-			// let precentComplete = (project.balance / project.goal).toFixed(2);
-			let precentComplete = 50.66;
+			let precentComplete = ((project.balance / project.goal)*100).toFixed(2);
+			// let precentComplete = 50.66;
 			return (
 	    		<Card className={"mt40"} key={index}>
 					<Card.Header>
 						{project.projectName}
-						<div className={"investorNum"}>已投资人数: <span className={"red"}>{project.investorNum}人</span></div>
+						<div className={"investorNum"}>已投资人数: {project.investorNum}人</div>
 					</Card.Header>
 					<Card.Body >
 						<ProgressBar animated variant={flagBonusTime?"warning":"success"} now={precentComplete}  label={precentComplete+"%"} className="mb20"/>
